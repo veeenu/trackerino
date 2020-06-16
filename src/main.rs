@@ -7,8 +7,9 @@ use warp::{
 use std::sync::{Arc, atomic::AtomicUsize};
 
 mod logging;
-mod tracking;
 mod geolocation;
+mod user_agent;
+mod tracking;
 
 #[tokio::main]
 async fn main() {
@@ -18,6 +19,8 @@ async fn main() {
   // That way we can also choose to disable the MaxMind 
   // geolocation service if we so wish.
   dotenv::dotenv().ok();
+
+  let geoloc = Arc::new(geolocation::Geolocation::new());
 
   // TODO load the value from SQL
   // This makes the program essentially non-distributed
@@ -39,7 +42,7 @@ async fn main() {
     .boxed();
 
   let routes = (
-    tracking::tracking(entry_id_factory.clone())
+    tracking::tracking(entry_id_factory.clone(), geoloc.clone())
       .with(cors.clone())
   )
   .or(home);

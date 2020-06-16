@@ -1,5 +1,8 @@
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::sync::{Arc, atomic::{AtomicUsize, Ordering} };
+
+use crate::geolocation::{Geolocation, Place};
+use crate::user_agent::UserAgent;
 
 use chrono::prelude::*;
 use log::*;
@@ -14,16 +17,12 @@ use warp::{
 pub struct TrackingEntry {
   // This ID will be loaded out of an AtomicUsize
   entry_id: usize,
-  // Would it be too aggressive if I implemented a "time spent on page" feature?
-  // Like with a second field which gets  updated by ID at page-change. Would be
-  // a lot of client-side event handlers. I'll keep it for later.
   timestamp: DateTime<Utc>,
-  end_timestamp: Option<String>,
-  ip: Option<String>,
-  user_agent: Option<String>,
+  user_agent: UserAgent,
   referrer: Option<String>,
   origin: Option<String>,
   path: Option<String>,
+  place: Option<Place>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -36,7 +35,9 @@ struct TrackingQuery {
   path: Option<String>,       // document.location.pathname
 }
 
-pub fn tracking(entry_id: Arc<AtomicUsize>) -> BoxedFilter<(impl Reply,)> {
+pub fn tracking(entry_id: Arc<AtomicUsize>, geoloc: Arc<Geolocation>) -> BoxedFilter<(impl Reply,)> {
+  let geoloc = geoloc.clone();
+
   warp::path("tracking")
     .and(warp::path::end())
     .and(warp::addr::remote())
@@ -47,19 +48,27 @@ pub fn tracking(entry_id: Arc<AtomicUsize>) -> BoxedFilter<(impl Reply,)> {
         SocketAddr::V4(i) => i.ip().to_string(),
         SocketAddr::V6(i) => i.ip().to_string(),
       });
+      
+      let place = addr.map(|addr| match addr {
+        SocketAddr::V4(i) => geoloc.lookup(IpAddr::V4(i.ip().to_owned())),
+        SocketAddr::V6(i) => geoloc.lookup(IpAddr::V6(i.ip().to_owned())),
+      }).unwrap_or(None);
+
+      let ua = ua.map(|ua| UserAgent::from(ua.as_str())).unwrap_or(UserAgent::default());
+
       info!("IP: {:?}", ip);
+      info!("PL: {:?}", place);
       info!("UA: {:?}", ua);
       info!("{:?}", tq);
       
       let entry = TrackingEntry {
         entry_id: entry_id.fetch_add(1, Ordering::Relaxed),
         timestamp: Utc::now(),
-        end_timestamp: None,
-        ip,
         user_agent: ua,
         referrer: tq.referrer,
         origin: tq.origin,
         path: tq.path,
+        place
       };
 
       format!("{:?}", entry)
