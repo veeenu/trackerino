@@ -11,6 +11,8 @@ log = "0.4.8"
 simplelog = "0.8.0"
 rusqlite = "0.23.1"
 warp = "0.2.3"
-chrono = { version = "0.4.11", features = [ "serde" ] }
-serde = { version = "1.0.111", features = [ "derive" ] }
-tokio = { version = "0.2.21", features = [ "full" ] }
+maxminddb = "0.14.0"
+dotenv = "0.15.0"
+chrono = { version = "0.4.11", features = ["serde"] }
+serde = { version = "1.0.111", features = ["derive"] }
+tokio = { version = "0.2.21", features = ["full"] }

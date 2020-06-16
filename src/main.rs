@@ -8,10 +8,16 @@ use std::sync::{Arc, atomic::AtomicUsize};
 
 mod logging;
 mod tracking;
+mod geolocation;
 
 #[tokio::main]
 async fn main() {
   logging::init();
+
+  // Let us use dotenv for configuration.
+  // That way we can also choose to disable the MaxMind 
+  // geolocation service if we so wish.
+  dotenv::dotenv().ok();
 
   // TODO load the value from SQL
   // This makes the program essentially non-distributed
