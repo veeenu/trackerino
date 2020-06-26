@@ -24,10 +24,10 @@ pub struct Geolocation {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Place {
-  city: Option<String>,
-  country: Option<String>,
-  latitude: Option<f64>,
-  longitude: Option<f64>,
+  pub city: Option<String>,
+  pub country: Option<String>,
+  pub latitude: Option<f64>,
+  pub longitude: Option<f64>,
 }
 
 // Let's trim the incoming data structure in order to extract a much leaner data

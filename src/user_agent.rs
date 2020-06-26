@@ -6,13 +6,13 @@ use woothee::parser::Parser;
 // with a coherent interface.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UserAgent {
-  name: String,
-  platform: String,
-  os: String,
-  os_version: String,
-  browser_type: String,
-  version: String,
-  vendor: String,
+  pub name: String,
+  pub platform: String,
+  pub os: String,
+  pub os_version: String,
+  pub browser_type: String,
+  pub version: String,
+  pub vendor: String,
 }
 
 impl Default for UserAgent {
@@ -65,6 +65,6 @@ mod tests {
     let ua_string = "";
     let user_agent = UserAgent::from(ua_string);
 
-    assert_eq!(user_agent.category, "UNKNOWN".to_owned());
+    assert_eq!(user_agent.platform, "UNKNOWN".to_owned());
   }
 }

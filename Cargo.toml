@@ -9,7 +9,9 @@ edition = "2018"
 [dependencies]
 log = "0.4.8"
 simplelog = "0.8.0"
-rusqlite = "0.23.1"
+rusqlite = { version = "0.23.1", features = ["chrono", "bundled"] }
+r2d2_sqlite = "0.16.0"
+r2d2 = "0.8.8"
 warp = "0.2.3"
 maxminddb = "0.14.0"
 dotenv = "0.15.0"

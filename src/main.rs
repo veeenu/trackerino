@@ -6,6 +6,9 @@ use warp::{
 
 use std::sync::{Arc, atomic::AtomicUsize};
 
+use tokio::sync::mpsc;
+
+mod database;
 mod logging;
 mod geolocation;
 mod user_agent;
@@ -22,10 +25,19 @@ async fn main() {
 
   let geoloc = Arc::new(geolocation::Geolocation::new());
 
+  let (ser_tx, ser_rx) = mpsc::unbounded_channel();
+
   // TODO load the value from SQL
   // This makes the program essentially non-distributed
   // But I don't care (for now)
   let entry_id_factory = Arc::new(AtomicUsize::new(0));
+
+  tokio::spawn(async move {
+    match database::receive_tracking_entries(ser_rx).await {
+      Ok(_) => {},
+      Err(e) => error!("{:?}", e)
+    }
+  });
 
   let cors = warp::cors()
     .allow_any_origin()
@@ -42,7 +54,7 @@ async fn main() {
     .boxed();
 
   let routes = (
-    tracking::tracking(entry_id_factory.clone(), geoloc.clone())
+    tracking::tracking(entry_id_factory.clone(), geoloc.clone(), ser_tx.clone())
       .with(cors.clone())
   )
   .or(home);
