@@ -12,6 +12,7 @@ use warp::{
   filters::BoxedFilter,
   Filter,
   Reply,
+  http::Response,
 };
 
 // This struct will be used elsewhere. I think I don't really care about
@@ -92,7 +93,12 @@ pub fn tracking(entry_id: Arc<AtomicUsize>, geoloc: Arc<Geolocation>, tx: Unboun
       // This should return something otherwise the client will only get a 200
       // which would be totally fine as we don't need deep introspection tbh
       // but still. Let's wait and see if that'll ever be a valid use case.
-      String::new()
+      //String::new()
+      Response::builder()
+        .header("Content-Type", "image/png")
+        .body(
+          base64::decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==").unwrap()
+        )
     })
     .boxed()
 }
